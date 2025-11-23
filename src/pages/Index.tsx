@@ -7,6 +7,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Icon from '@/components/ui/icon';
 import { Switch } from '@/components/ui/switch';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from '@/components/ui/use-toast';
 
 interface Chat {
   id: number;
@@ -33,6 +35,16 @@ const Index = () => {
   const [selectedChat, setSelectedChat] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [messageInput, setMessageInput] = useState('');
+  const [currentView, setCurrentView] = useState<'chats' | 'channels' | 'groups' | 'calls' | 'profile'>('chats');
+  const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
+  const [callType, setCallType] = useState<'voice' | 'video'>('voice');
+  const [isSearchDialogOpen, setIsSearchDialogOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: 1, sender: 'Анна', content: 'Привет! Как проект продвигается?', time: '14:30', isOwn: false },
+    { id: 2, sender: 'Вы', content: 'Отлично! Уже почти закончил дизайн', time: '14:31', isOwn: true },
+    { id: 3, sender: 'Анна', content: 'Голосовое сообщение', time: '14:32', isOwn: false, hasVoice: true },
+    { id: 4, sender: 'Вы', content: 'Супер! Сейчас послушаю 🎧', time: '14:33', isOwn: true },
+  ]);
 
   const chats: Chat[] = [
     { id: 1, name: 'Анна Смирнова', avatar: '👩', lastMessage: 'Привет! Как дела?', time: '14:32', unread: 3, online: true, type: 'chat' },
@@ -49,12 +61,37 @@ const Index = () => {
     { id: 4, name: 'Дмитрий Иванов', avatar: '🧑‍💻', status: 'был вчера', online: false },
   ];
 
-  const messages: Message[] = [
-    { id: 1, sender: 'Анна', content: 'Привет! Как проект продвигается?', time: '14:30', isOwn: false },
-    { id: 2, sender: 'Вы', content: 'Отлично! Уже почти закончил дизайн', time: '14:31', isOwn: true },
-    { id: 3, sender: 'Анна', content: 'Голосовое сообщение', time: '14:32', isOwn: false, hasVoice: true },
-    { id: 4, sender: 'Вы', content: 'Супер! Сейчас послушаю 🎧', time: '14:33', isOwn: true },
-  ];
+  const handleSendMessage = () => {
+    if (messageInput.trim()) {
+      const newMessage: Message = {
+        id: messages.length + 1,
+        sender: 'Вы',
+        content: messageInput,
+        time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+        isOwn: true,
+      };
+      setMessages([...messages, newMessage]);
+      setMessageInput('');
+      toast({ title: 'Сообщение отправлено' });
+    }
+  };
+
+  const handleCall = (type: 'voice' | 'video') => {
+    setCallType(type);
+    setIsCallDialogOpen(true);
+  };
+
+  const handleAddContact = () => {
+    toast({ title: 'Добавление контакта', description: 'Функция в разработке' });
+  };
+
+  const handleAttachment = () => {
+    toast({ title: 'Прикрепить файл', description: 'Выберите файл для отправки' });
+  };
+
+  const handleVoiceRecord = () => {
+    toast({ title: '🎤 Запись голосового', description: 'Удерживайте для записи' });
+  };
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -68,23 +105,48 @@ const Index = () => {
       <div className="w-20 bg-gradient-to-b from-primary to-secondary flex flex-col items-center py-6 gap-6">
         <div className="text-3xl mb-4 animate-scale-in">💬</div>
         
-        <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-2xl">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={`rounded-2xl ${currentView === 'chats' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
+          onClick={() => setCurrentView('chats')}
+        >
           <Icon name="MessageSquare" size={24} />
         </Button>
         
-        <Button variant="ghost" size="icon" className="text-white/70 hover:bg-white/20 rounded-2xl">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={`rounded-2xl ${currentView === 'channels' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
+          onClick={() => setCurrentView('channels')}
+        >
           <Icon name="Radio" size={24} />
         </Button>
         
-        <Button variant="ghost" size="icon" className="text-white/70 hover:bg-white/20 rounded-2xl">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={`rounded-2xl ${currentView === 'groups' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
+          onClick={() => setCurrentView('groups')}
+        >
           <Icon name="Users" size={24} />
         </Button>
         
-        <Button variant="ghost" size="icon" className="text-white/70 hover:bg-white/20 rounded-2xl">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={`rounded-2xl ${currentView === 'calls' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
+          onClick={() => setCurrentView('calls')}
+        >
           <Icon name="Phone" size={24} />
         </Button>
         
-        <Button variant="ghost" size="icon" className="text-white/70 hover:bg-white/20 rounded-2xl">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className={`rounded-2xl ${currentView === 'profile' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
+          onClick={() => setCurrentView('profile')}
+        >
           <Icon name="User" size={24} />
         </Button>
 
@@ -101,7 +163,12 @@ const Index = () => {
             <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Чаты
             </h2>
-            <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary/10">
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="rounded-full hover:bg-primary/10"
+              onClick={handleAddContact}
+            >
               <Icon name="Plus" size={20} />
             </Button>
           </div>
@@ -270,13 +337,28 @@ const Index = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button size="icon" variant="ghost" className="rounded-full hover:bg-accent/10 hover:text-accent">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="rounded-full hover:bg-accent/10 hover:text-accent"
+                  onClick={() => setIsSearchDialogOpen(true)}
+                >
                   <Icon name="Search" size={20} />
                 </Button>
-                <Button size="icon" variant="ghost" className="rounded-full hover:bg-accent/10 hover:text-accent">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="rounded-full hover:bg-accent/10 hover:text-accent"
+                  onClick={() => handleCall('voice')}
+                >
                   <Icon name="Phone" size={20} />
                 </Button>
-                <Button size="icon" variant="ghost" className="rounded-full hover:bg-accent/10 hover:text-accent">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="rounded-full hover:bg-accent/10 hover:text-accent"
+                  onClick={() => handleCall('video')}
+                >
                   <Icon name="Video" size={20} />
                 </Button>
                 <Button size="icon" variant="ghost" className="rounded-full hover:bg-muted">
@@ -325,7 +407,12 @@ const Index = () => {
 
             <div className="p-4 border-t border-border bg-card/50 backdrop-blur">
               <div className="flex items-end gap-2 max-w-4xl mx-auto">
-                <Button size="icon" variant="ghost" className="rounded-full hover:bg-muted shrink-0">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="rounded-full hover:bg-muted shrink-0"
+                  onClick={handleAttachment}
+                >
                   <Icon name="Paperclip" size={20} />
                 </Button>
                 
@@ -334,13 +421,19 @@ const Index = () => {
                     placeholder="Введите сообщение..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     className="pr-20 rounded-2xl border-border min-h-[44px]"
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
                     <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-muted">
                       <Icon name="Smile" size={18} />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-muted">
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 rounded-full hover:bg-muted"
+                      onClick={handleVoiceRecord}
+                    >
                       <Icon name="Mic" size={18} />
                     </Button>
                   </div>
@@ -349,6 +442,7 @@ const Index = () => {
                 <Button 
                   size="icon" 
                   className="rounded-full h-11 w-11 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shrink-0"
+                  onClick={handleSendMessage}
                 >
                   <Icon name="Send" size={20} />
                 </Button>
@@ -368,6 +462,57 @@ const Index = () => {
           </>
         )}
       </div>
+
+      <Dialog open={isCallDialogOpen} onOpenChange={setIsCallDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">
+              {callType === 'video' ? '📹 Видеозвонок' : '📞 Голосовой звонок'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-6 py-6">
+            <Avatar className="h-24 w-24">
+              <AvatarFallback className="text-4xl bg-gradient-to-br from-primary/20 to-secondary/20">
+                {currentChat?.avatar}
+              </AvatarFallback>
+            </Avatar>
+            <div className="text-center">
+              <h3 className="text-xl font-semibold mb-1">{currentChat?.name}</h3>
+              <p className="text-sm text-muted-foreground">Звоним...</p>
+            </div>
+            <div className="flex gap-4">
+              <Button 
+                size="icon" 
+                variant="destructive" 
+                className="rounded-full h-14 w-14"
+                onClick={() => {
+                  setIsCallDialogOpen(false);
+                  toast({ title: 'Звонок завершен' });
+                }}
+              >
+                <Icon name="PhoneOff" size={24} />
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isSearchDialogOpen} onOpenChange={setIsSearchDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>🔍 Поиск в чате</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input placeholder="Поиск сообщений..." className="rounded-xl" />
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Результаты:</p>
+              <div className="text-center py-8 text-muted-foreground">
+                Введите запрос для поиска
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
