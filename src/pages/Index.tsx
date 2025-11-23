@@ -1,14 +1,9 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Icon from '@/components/ui/icon';
-import { Switch } from '@/components/ui/switch';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
+import Sidebar from '@/components/Sidebar';
+import ChatList from '@/components/ChatList';
+import ChatWindow from '@/components/ChatWindow';
+import Dialogs from '@/components/Dialogs';
 
 interface Chat {
   id: number;
@@ -102,417 +97,43 @@ const Index = () => {
 
   return (
     <div className={`h-screen flex overflow-hidden ${darkMode ? 'dark' : ''}`}>
-      <div className="w-20 bg-gradient-to-b from-primary to-secondary flex flex-col items-center py-6 gap-6">
-        <div className="text-3xl mb-4 animate-scale-in">💬</div>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={`rounded-2xl ${currentView === 'chats' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
-          onClick={() => setCurrentView('chats')}
-        >
-          <Icon name="MessageSquare" size={24} />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={`rounded-2xl ${currentView === 'channels' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
-          onClick={() => setCurrentView('channels')}
-        >
-          <Icon name="Radio" size={24} />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={`rounded-2xl ${currentView === 'groups' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
-          onClick={() => setCurrentView('groups')}
-        >
-          <Icon name="Users" size={24} />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={`rounded-2xl ${currentView === 'calls' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
-          onClick={() => setCurrentView('calls')}
-        >
-          <Icon name="Phone" size={24} />
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className={`rounded-2xl ${currentView === 'profile' ? 'text-white bg-white/20' : 'text-white/70 hover:bg-white/20'}`}
-          onClick={() => setCurrentView('profile')}
-        >
-          <Icon name="User" size={24} />
-        </Button>
+      <Sidebar
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+      />
 
-        <div className="mt-auto">
-          <Button variant="ghost" size="icon" className="text-white/70 hover:bg-white/20 rounded-2xl" onClick={toggleDarkMode}>
-            <Icon name={darkMode ? "Sun" : "Moon"} size={20} />
-          </Button>
-        </div>
-      </div>
+      <ChatList
+        chats={chats}
+        contacts={contacts}
+        selectedChat={selectedChat}
+        setSelectedChat={setSelectedChat}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleAddContact={handleAddContact}
+      />
 
-      <div className="w-96 border-r border-border bg-card flex flex-col">
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              Чаты
-            </h2>
-            <Button 
-              size="icon" 
-              variant="ghost" 
-              className="rounded-full hover:bg-primary/10"
-              onClick={handleAddContact}
-            >
-              <Icon name="Plus" size={20} />
-            </Button>
-          </div>
-          
-          <div className="relative">
-            <Icon name="Search" size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input 
-              placeholder="Поиск..." 
-              className="pl-10 rounded-xl border-border"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
+      <ChatWindow
+        currentChat={currentChat}
+        messages={messages}
+        messageInput={messageInput}
+        setMessageInput={setMessageInput}
+        handleSendMessage={handleSendMessage}
+        handleCall={handleCall}
+        handleAttachment={handleAttachment}
+        handleVoiceRecord={handleVoiceRecord}
+        setIsSearchDialogOpen={setIsSearchDialogOpen}
+      />
 
-        <Tabs defaultValue="all" className="flex-1 flex flex-col">
-          <TabsList className="w-full justify-start rounded-none border-b px-4">
-            <TabsTrigger value="all" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-              Все
-            </TabsTrigger>
-            <TabsTrigger value="channels" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-              Каналы
-            </TabsTrigger>
-            <TabsTrigger value="groups" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-              Группы
-            </TabsTrigger>
-            <TabsTrigger value="contacts" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
-              Контакты
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="flex-1 m-0">
-            <ScrollArea className="h-full">
-              <div className="space-y-1 p-2">
-                {chats.map((chat) => (
-                  <div
-                    key={chat.id}
-                    onClick={() => setSelectedChat(chat.id)}
-                    className={`p-3 rounded-xl cursor-pointer transition-all hover:bg-muted animate-fade-in ${
-                      selectedChat === chat.id ? 'bg-primary/10' : ''
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="relative">
-                        <Avatar className="h-12 w-12">
-                          <AvatarImage src="" />
-                          <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-secondary/20">
-                            {chat.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        {chat.online && (
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-card"></div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold truncate">{chat.name}</h3>
-                          <span className="text-xs text-muted-foreground">{chat.time}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
-                          {chat.unread > 0 && (
-                            <Badge className="ml-2 bg-primary text-primary-foreground rounded-full h-5 min-w-[20px] px-1.5">
-                              {chat.unread}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-
-          <TabsContent value="channels" className="flex-1 m-0">
-            <ScrollArea className="h-full">
-              <div className="space-y-1 p-2">
-                {chats.filter(c => c.type === 'channel').map((chat) => (
-                  <div key={chat.id} className="p-3 rounded-xl hover:bg-muted cursor-pointer animate-fade-in">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="text-2xl bg-gradient-to-br from-accent/20 to-accent/40">
-                          {chat.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{chat.name}</h3>
-                        <p className="text-sm text-muted-foreground">{chat.lastMessage}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-
-          <TabsContent value="groups" className="flex-1 m-0">
-            <ScrollArea className="h-full">
-              <div className="space-y-1 p-2">
-                {chats.filter(c => c.type === 'group').map((chat) => (
-                  <div key={chat.id} className="p-3 rounded-xl hover:bg-muted cursor-pointer animate-fade-in">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="text-2xl bg-gradient-to-br from-secondary/20 to-secondary/40">
-                          {chat.avatar}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{chat.name}</h3>
-                        <p className="text-sm text-muted-foreground">{chat.lastMessage}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-
-          <TabsContent value="contacts" className="flex-1 m-0">
-            <ScrollArea className="h-full">
-              <div className="space-y-1 p-2">
-                {contacts.map((contact) => (
-                  <div key={contact.id} className="p-3 rounded-xl hover:bg-muted cursor-pointer animate-fade-in">
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-accent/20">
-                            {contact.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        {contact.online && (
-                          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-card"></div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{contact.name}</h3>
-                        <p className="text-sm text-muted-foreground">{contact.status}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      <div className="flex-1 flex flex-col bg-background">
-        {currentChat && (
-          <>
-            <div className="h-16 border-b border-border px-6 flex items-center justify-between bg-card/50 backdrop-blur">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="text-xl bg-gradient-to-br from-primary/20 to-secondary/20">
-                    {currentChat.avatar}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-semibold">{currentChat.name}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    {currentChat.online ? '🟢 онлайн' : 'был(а) недавно'}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="rounded-full hover:bg-accent/10 hover:text-accent"
-                  onClick={() => setIsSearchDialogOpen(true)}
-                >
-                  <Icon name="Search" size={20} />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="rounded-full hover:bg-accent/10 hover:text-accent"
-                  onClick={() => handleCall('voice')}
-                >
-                  <Icon name="Phone" size={20} />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="rounded-full hover:bg-accent/10 hover:text-accent"
-                  onClick={() => handleCall('video')}
-                >
-                  <Icon name="Video" size={20} />
-                </Button>
-                <Button size="icon" variant="ghost" className="rounded-full hover:bg-muted">
-                  <Icon name="MoreVertical" size={20} />
-                </Button>
-              </div>
-            </div>
-
-            <ScrollArea className="flex-1 p-6">
-              <div className="space-y-4 max-w-4xl mx-auto">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'} animate-fade-in`}
-                  >
-                    <div className={`max-w-md ${message.isOwn ? 'order-2' : 'order-1'}`}>
-                      <div
-                        className={`rounded-2xl px-4 py-3 ${
-                          message.isOwn
-                            ? 'bg-gradient-to-r from-primary to-secondary text-primary-foreground'
-                            : 'bg-card border border-border'
-                        }`}
-                      >
-                        {message.hasVoice ? (
-                          <div className="flex items-center gap-3">
-                            <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-white/20">
-                              <Icon name="Play" size={16} />
-                            </Button>
-                            <div className="flex-1 h-1 bg-white/30 rounded-full">
-                              <div className="w-1/3 h-full bg-white rounded-full"></div>
-                            </div>
-                            <span className="text-xs">0:05</span>
-                          </div>
-                        ) : (
-                          <p>{message.content}</p>
-                        )}
-                      </div>
-                      <span className={`text-xs text-muted-foreground mt-1 block ${message.isOwn ? 'text-right' : 'text-left'}`}>
-                        {message.time}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-
-            <div className="p-4 border-t border-border bg-card/50 backdrop-blur">
-              <div className="flex items-end gap-2 max-w-4xl mx-auto">
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="rounded-full hover:bg-muted shrink-0"
-                  onClick={handleAttachment}
-                >
-                  <Icon name="Paperclip" size={20} />
-                </Button>
-                
-                <div className="flex-1 relative">
-                  <Input
-                    placeholder="Введите сообщение..."
-                    value={messageInput}
-                    onChange={(e) => setMessageInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="pr-20 rounded-2xl border-border min-h-[44px]"
-                  />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
-                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full hover:bg-muted">
-                      <Icon name="Smile" size={18} />
-                    </Button>
-                    <Button 
-                      size="icon" 
-                      variant="ghost" 
-                      className="h-8 w-8 rounded-full hover:bg-muted"
-                      onClick={handleVoiceRecord}
-                    >
-                      <Icon name="Mic" size={18} />
-                    </Button>
-                  </div>
-                </div>
-
-                <Button 
-                  size="icon" 
-                  className="rounded-full h-11 w-11 bg-gradient-to-r from-primary to-secondary hover:opacity-90 shrink-0"
-                  onClick={handleSendMessage}
-                >
-                  <Icon name="Send" size={20} />
-                </Button>
-              </div>
-              
-              <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Icon name="Lock" size={12} />
-                  <span>Шифрование включено</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Icon name="Bot" size={12} />
-                  <span>Боты доступны</span>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      <Dialog open={isCallDialogOpen} onOpenChange={setIsCallDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              {callType === 'video' ? '📹 Видеозвонок' : '📞 Голосовой звонок'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-6 py-6">
-            <Avatar className="h-24 w-24">
-              <AvatarFallback className="text-4xl bg-gradient-to-br from-primary/20 to-secondary/20">
-                {currentChat?.avatar}
-              </AvatarFallback>
-            </Avatar>
-            <div className="text-center">
-              <h3 className="text-xl font-semibold mb-1">{currentChat?.name}</h3>
-              <p className="text-sm text-muted-foreground">Звоним...</p>
-            </div>
-            <div className="flex gap-4">
-              <Button 
-                size="icon" 
-                variant="destructive" 
-                className="rounded-full h-14 w-14"
-                onClick={() => {
-                  setIsCallDialogOpen(false);
-                  toast({ title: 'Звонок завершен' });
-                }}
-              >
-                <Icon name="PhoneOff" size={24} />
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={isSearchDialogOpen} onOpenChange={setIsSearchDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>🔍 Поиск в чате</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input placeholder="Поиск сообщений..." className="rounded-xl" />
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Результаты:</p>
-              <div className="text-center py-8 text-muted-foreground">
-                Введите запрос для поиска
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <Dialogs
+        isCallDialogOpen={isCallDialogOpen}
+        setIsCallDialogOpen={setIsCallDialogOpen}
+        callType={callType}
+        currentChat={currentChat}
+        isSearchDialogOpen={isSearchDialogOpen}
+        setIsSearchDialogOpen={setIsSearchDialogOpen}
+      />
     </div>
   );
 };
